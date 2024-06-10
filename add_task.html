@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster - Add Task</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>TaskMaster</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="tasks.html">Tasks</a>
+            <a href="add_task.html">Add Task</a>
+            <a href="completed_tasks.html">Completed Tasks</a>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Add New Task</h2>
+        <form id="addTaskForm">
+            <label for="taskTitle">Task Title:</label>
+            <input type="text" id="taskTitle" name="taskTitle" required>
+            <label for="taskDescription">Task Description:</label>
+            <textarea id="taskDescription" name="taskDescription" required></textarea>
+            <label for="taskTimeframe">Timeframe:</label>
+            <select id="taskTimeframe" name="taskTimeframe" onchange="showCustomTimeframeInput()" required>
+                <option value="Today">Today</option>
+                <option value="This Week">This Week</option>
+                <option value="This Month">This Month</option>
+                <option value="Custom">Custom</option>
+            </select>
+            <input type="text" id="customTimeframe" name="customTimeframe" style="display: none;">
+            <button type="submit">Add Task</button>
+        </form>
+    </main>
+</body>
+<script>
+function showCustomTimeframeInput() {
+    const selectElement = document.getElementById('taskTimeframe');
+    const customTimeframeInput = document.getElementById('customTimeframe');
+    if (selectElement.value === 'Custom') {
+        customTimeframeInput.style.display = 'inline-block';
+        customTimeframeInput.required = true;
+    } else {
+        customTimeframeInput.style.display = 'none';
+        customTimeframeInput.required = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const addTaskForm = document.getElementById('addTaskForm');
+
+    addTaskForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('taskTitle').value;
+        const description = document.getElementById('taskDescription').value;
+        let timeframe = document.getElementById('taskTimeframe').value; // Changed from const to let
+        if (timeframe === 'Custom') {
+            timeframe = document.getElementById('customTimeframe').value;
+        }
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const task = { title, description, timeframe };
+        tasks.push(task);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        alert('Task added successfully!');
+        addTaskForm.reset();
+    });
+});
+</script>
+</html>

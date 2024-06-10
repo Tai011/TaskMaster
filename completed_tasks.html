@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster - Completed Tasks</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional styles */
+        .task-item {
+            margin-bottom: 5px; /* Adjust margin between task items */
+        }
+
+        .task-name {
+            font-weight: bold; /* Make task name bold */
+        }
+
+        .task-description {
+            font-size: 10px;
+            color: #666;
+            margin-left: 10px; /* Add margin between task name and description */
+        }
+
+        .delete-btn {
+            margin-left: 10px; /* Add margin between description and delete button */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>TaskMaster</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="tasks.html">Tasks</a>
+            <a href="add_task.html">Add Task</a>
+            <a href="completed_tasks.html">Completed Tasks</a>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Completed Tasks</h2>
+        <ul id="completedTaskList">
+            <!-- Completed tasks will be loaded here -->
+        </ul>
+    </main>
+    
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const completedTaskList = document.getElementById('completedTaskList');
+    
+        // Function to load completed tasks from local storage
+        function loadCompletedTasks() {
+            const completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || [];
+            completedTaskList.innerHTML = '';
+            completedTasks.forEach((task, index) => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('task-item'); // Add class for styling
+                
+                // Task name with description
+                const taskDetails = document.createElement('span');
+                taskDetails.classList.add('task-name');
+                taskDetails.textContent = `${task.title}: ${task.description}`; // Concatenate task name and description
+                listItem.appendChild(taskDetails);
+                
+                // Add delete button with confirmation message
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.addEventListener('click', () => {
+                    if (confirm(`Are you sure you want to delete the task "${task.title}"?`)) {
+                        deleteCompletedTask(index);
+                    }
+                });
+                listItem.appendChild(deleteBtn);
+                
+                completedTaskList.appendChild(listItem);
+            });
+        }
+    
+        // Function to delete completed task
+        function deleteCompletedTask(index) {
+            const completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || [];
+            completedTasks.splice(index, 1);
+            localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
+            loadCompletedTasks();
+        }
+    
+        loadCompletedTasks();
+    });
+</script>
+</html>

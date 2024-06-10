@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster - Profile</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>TaskMaster</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="tasks.html">Tasks</a>
+            <a href="add_task.html">Add Task</a>
+            <a href="completed_tasks.html">Completed Tasks</a>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Your Profile</h2>
+        <section id="profile-info">
+            <h3>Username:</h3>
+            <p id="username-display"></p>
+            <h3>Email:</h3>
+            <p id="email-display"></p>
+        </section>
+        <button id="edit-profile-btn">Edit Profile</button>
+        <form id="profileForm" style="display: none;">
+            <label for="username">Update Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="email">Update Email:</label>
+            <input type="email" id="email" name="email" required>
+            <button type="submit">Save Profile</button>
+        </form>
+    </main>
+    <script src="profile.js"></script>
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const profileForm = document.getElementById('profileForm');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const usernameDisplay = document.getElementById('username-display');
+        const emailDisplay = document.getElementById('email-display');
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+    
+        // Load profile information from local storage
+        function loadProfile() {
+            const profile = JSON.parse(localStorage.getItem('profile')) || {};
+            usernameInput.value = profile.username || '';
+            emailInput.value = profile.email || '';
+            usernameDisplay.textContent = profile.username || 'Not set';
+            emailDisplay.textContent = profile.email || 'Not set';
+        }
+    
+        // Save profile information to local storage
+        profileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const profile = {
+                username: usernameInput.value,
+                email: emailInput.value
+            };
+            localStorage.setItem('profile', JSON.stringify(profile));
+            loadProfile(); // Update the display with the new values
+            alert('Profile saved successfully!');
+        });
+    
+        // Toggle edit profile form
+        editProfileBtn.addEventListener('click', () => {
+            profileForm.style.display = profileForm.style.display === 'none'? 'block' : 'none';
+        });
+    
+        loadProfile();
+    });
+</script>
+</html>

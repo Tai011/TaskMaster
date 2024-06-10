@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster - Tasks</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .task-timeframe-label {
+            font-size: 12px;
+            /* Smaller font size */
+            color: #007bff;
+            /* Adjust color if needed */
+            margin-left: 20px;
+            /* Add some spacing between label and timeframe */
+        }
+
+        .task-timeframe {
+            font-size: 12px;
+            color: #007bff;
+            /* Change timeframe color */
+            margin-left: 2px;
+            /* Add margin between description and timeframe */
+        }
+
+        /* Styles for the search input */
+        #searchInput {
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Rest of the styles remain the same */
+        .task-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .task-actions button {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            background-color: #ff6666;
+            color: white;
+        }
+
+        .task-description {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .delete-all-btn {
+            background-color: #ff6666;
+            color: white;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>TaskMaster</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="tasks.html">Tasks</a>
+            <a href="add_task.html">Add Task</a>
+            <a href="completed_tasks.html">Completed Tasks</a>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Tasks</h2>
+        <input type="text" id="searchInput" placeholder="Search tasks..." oninput="filterTasks()"> <!-- Search input -->
+        <button id="deleteAllBtn" class="delete-all-btn" onclick="deleteAllTasks()">Delete All</button>
+        <!-- Button to delete all tasks -->
+        <ul id="taskList">
+            <!-- Task items will be loaded here -->
+        </ul>
+        <input type="file" id="fileInput" style="display:none">
+        <button onclick="loadTasksFromFile()">Load Tasks from File</button>
+        <button id="saveToFileBtn" onclick="saveTasksToFile()">Save Tasks to File</button>
+        <!-- Button to save tasks to file -->
+    </main>
+
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTasks();
+        document.querySelectorAll('.complete-btn').forEach((button, index) => {
+            button.addEventListener('click', () => {
+                if (confirm('Are you sure you want to mark this task as complete?')) {
+                    completeTask(index);
+                }
+            });
+        });
+    });
+
+
+    // Function to load tasks from local storage
+    function loadTasks() {
+        const taskList = document.getElementById('taskList');
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        taskList.innerHTML = '';
+        tasks.forEach((task, index) => {
+            const listItem = document.createElement('li');
+            const taskContent = document.createElement('div');
+            taskContent.classList.add('task-content');
+            const taskTitle = document.createElement('span');
+            taskTitle.innerHTML = `<strong>${task.title}</strong>: `;
+            const taskDescription = document.createElement('span');
+            taskDescription.textContent = task.description;
+            taskDescription.classList.add('task-description');
+            taskContent.appendChild(taskTitle);
+            taskContent.appendChild(taskDescription);
+
+            // Add timeframe
+            const taskTimeframeLabel = document.createElement('span');
+            taskTimeframeLabel.classList.add('task-timeframe-label');
+            taskTimeframeLabel.textContent = 'Timeframe: ';
+            const taskTimeframe = document.createElement('span');
+            taskTimeframe.classList.add('task-timeframe');
+            taskTimeframe.textContent = task.timeframe; // Assuming task.timeframe holds the timeframe value
+            taskContent.appendChild(taskTimeframeLabel);
+            taskContent.appendChild(taskTimeframe);
+
+            listItem.appendChild(taskContent);
+            const taskActions = document.createElement('div');
+            taskActions.classList.add('task-actions');
+
+            // Add complete button
+            const completeBtn = document.createElement('button');
+            completeBtn.textContent = 'Complete';
+            completeBtn.addEventListener('click', () => {
+                completeTask(index);
+            });
+            taskActions.appendChild(completeBtn);
+
+            // Add delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.classList.add('delete-btn');
+            deleteBtn.addEventListener('click', () => {
+                confirmDeleteTask(index);
+            });
+            taskActions.appendChild(deleteBtn);
+
+            listItem.appendChild(taskActions);
+            taskList.appendChild(listItem);
+        });
+    }
+
+    // Function to save tasks to a file
+    function saveTasksToFile() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const data = tasks.map(task => `${task.title}: ${task.description} (Timeframe: ${task.timeframe})`).join("\n\n"); // Separate each task with two newline characters
+        const blob = new Blob([data], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tasks.txt';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    // Function to load tasks from a file
+    // Function to load tasks from a file
+    function loadTasksFromFile() {
+        const fileInput = document.getElementById('fileInput');
+        fileInput.click();
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const loadedTasks = event.target.result.split('\n\n').map(taskStr => {
+                    const [taskDesc, timeframeStr] = taskStr.split(' (Timeframe: '); // Split to extract description and timeframe
+                    const [title, description] = taskDesc.split(': '); // Split to extract title and description
+                    const timeframe = timeframeStr ? timeframeStr.slice(0, -1) : ''; // Remove the closing parenthesis
+                    return { title, description, timeframe };
+                });
+
+                const existingTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+                // Check if any task from the loaded file already exists
+                const duplicateTasks = loadedTasks.filter(loadedTask => {
+                    return existingTasks.some(existingTask => existingTask.title === loadedTask.title);
+                });
+
+                if (duplicateTasks.length > 0) {
+                    alert('Some tasks from the loaded file already exist.');
+                } else {
+                    // Add the loaded tasks to the existing tasks
+                    const tasks = existingTasks.concat(loadedTasks);
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    loadTasks();
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    // Function to mark task as complete
+    function completeTask(index) {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || [];
+        completedTasks.push(tasks.splice(index, 1)[0]);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
+        loadTasks(); // Reload tasks on the current page
+        loadCompletedTasks(); // Load completed tasks on the completed tasks page
+    }
+    
+
+    // Function to delete task with confirmation
+    function confirmDeleteTask(index) {
+        const taskTitle = JSON.parse(localStorage.getItem('tasks'))[index].title;
+        if (confirm(`Are you sure you want to delete the task "${taskTitle}"?`)) {
+            deleteTask(index);
+        }
+    }
+
+    // Function to delete task
+    function deleteTask(index) {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks.splice(index, 1);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        loadTasks();
+    }
+
+    // Function to delete all tasks
+    function deleteAllTasks() {
+        if (confirm('Are you sure you want to delete all tasks?')) {
+            localStorage.removeItem('tasks');
+            loadTasks();
+        }
+    }// Function to filter tasks based on search query
+    function filterTasks() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const taskItems = document.querySelectorAll('#taskList li');
+        taskItems.forEach(taskItem => {
+            const taskTitle = taskItem.querySelector('strong').textContent.toLowerCase();
+            const taskDescription = taskItem.querySelector('.task-description').textContent.toLowerCase();
+            if (taskTitle.includes(query) || taskDescription.includes(query)) {
+                taskItem.style.display = 'block';
+            } else {
+                taskItem.style.display = 'none';
+            }
+        });
+    }
+
+    // Function to make task items draggable
+    function makeTaskDraggable() {
+        const taskList = document.getElementById('taskList');
+        Array.from(taskList.children).forEach(taskItem => {
+            taskItem.draggable = true;
+            taskItem.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', taskItem.id);
+            });
+        });
+    }
+
+    // Function to handle dropping tasks
+    function handleDrop(e) {
+        e.preventDefault();
+        const droppedItemId = e.dataTransfer.getData('text/plain');
+        const droppedItem = document.getElementById(droppedItemId);
+        const taskList = document.getElementById('taskList');
+        taskList.appendChild(droppedItem);
+    }
+
+    // Add event listeners for drag and drop
+    document.addEventListener('DOMContentLoaded', () => {
+        const taskList = document.getElementById('taskList');
+        taskList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+        taskList.addEventListener('drop', handleDrop);
+        makeTaskDraggable();
+    });
+   
+
+</script>
+
+</html>
